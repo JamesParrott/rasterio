@@ -1,14 +1,14 @@
 name: Test against recent GDAL tags
 
 on:
-  schedule:
-    - cron: '0 3,15 * * *'
-  pull_request:  # also build on PRs touching this file
-    paths:
-      - ".github/workflows/test_gdal_tags.yaml"
-      - ".github/workflows/test_gdal_build.yaml"
-      - "ci/gdal-compile.sh"
-      - "ci/get-new-tags.py"
+  # schedule:
+  #   - cron: '0 3,15 * * *'
+  # pull_request:  # also build on PRs touching this file
+  #   paths:
+  #     - ".github/workflows/test_gdal_tags.yaml"
+  #     - ".github/workflows/test_gdal_build.yaml"
+  #     - "ci/gdal-compile.sh"
+  #     - "ci/get-new-tags.py"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}

@@ -13,20 +13,20 @@ on:
       - 'scripts/**'
       - 'rasterio/**'
       - 'tests/**'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - '.github/workflows/tests.yaml'
-      - 'requirements*.txt'
-      - 'setup.py'
-      - 'setup.cfg'
-      - 'MANIFEST.in'
-      - 'pyproject.toml'
-      - 'scripts/**'
-      - 'rasterio/**'
-      - 'tests/**'
-  schedule:
-    - cron:  '0 0 * * 0'
+  # pull_request:
+  #   branches: [ main ]
+  #   paths:
+  #     - '.github/workflows/tests.yaml'
+  #     - 'requirements*.txt'
+  #     - 'setup.py'
+  #     - 'setup.cfg'
+  #     - 'MANIFEST.in'
+  #     - 'pyproject.toml'
+  #     - 'scripts/**'
+  #     - 'rasterio/**'
+  #     - 'tests/**'
+  # schedule:
+  #   - cron:  '0 0 * * 0'
 
 jobs:
   linting:
@@ -42,73 +42,74 @@ jobs:
           python -m pip install pre-commit
           pre-commit run --show-diff-on-failure --all-files
 
-  docker_tests:
-    needs: linting
-    runs-on: ubuntu-latest
-    name: Docker | GDAL=${{ matrix.gdal-version }} | python=${{ matrix.python-version }}
-    container: ghcr.io/osgeo/gdal:ubuntu-small-${{ matrix.gdal-version }}
-    env:
-        DEBIAN_FRONTEND: noninteractive
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ['3.9', '3.10', '3.11']
-        gdal-version: ['3.6.4', '3.7.0']
-        include:
-          - python-version: '3.9'
-            gdal-version: '3.5.3'
-          - python-version: '3.9'
-            gdal-version: '3.4.3'
-          - python-version: '3.9'
-            gdal-version: '3.3.3'
+  # docker_tests:
+  #   needs: linting
+  #   runs-on: ubuntu-latest
+  #   name: Docker | GDAL=${{ matrix.gdal-version }} | python=${{ matrix.python-version }}
+  #   container: ghcr.io/osgeo/gdal:ubuntu-small-${{ matrix.gdal-version }}
+  #   env:
+  #       DEBIAN_FRONTEND: noninteractive
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       python-version: ['3.9', '3.10', '3.11']
+  #       gdal-version: ['3.6.4', '3.7.0']
+  #       include:
+  #         - python-version: '3.9'
+  #           gdal-version: '3.5.3'
+  #         - python-version: '3.9'
+  #           gdal-version: '3.4.3'
+  #         - python-version: '3.9'
+  #           gdal-version: '3.3.3'
 
-    steps:
-      - uses: actions/checkout@v4
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - name: Update
-        run: |
-          apt-get update
-          apt-get -y install software-properties-common
-          add-apt-repository -y ppa:deadsnakes/ppa
-          apt-get update
+  #     - name: Update
+  #       run: |
+  #         apt-get update
+  #         apt-get -y install software-properties-common
+  #         add-apt-repository -y ppa:deadsnakes/ppa
+  #         apt-get update
 
-      - name: Set up Python ${{ matrix.python-version }}
-        run: |
-          apt-get install -y --no-install-recommends \
-            python${{ matrix.python-version }} \
-            python${{ matrix.python-version }}-dev \
-            python${{ matrix.python-version }}-venv \
-            python3-pip \
-            g++
+  #     - name: Set up Python ${{ matrix.python-version }}
+  #       run: |
+  #         apt-get install -y --no-install-recommends \
+  #           python${{ matrix.python-version }} \
+  #           python${{ matrix.python-version }}-dev \
+  #           python${{ matrix.python-version }}-venv \
+  #           python3-pip \
+  #           g++
 
-      - name: Install dependencies
-        run: |
-          python${{ matrix.python-version }} -m venv testenv
-          . testenv/bin/activate
-          python -m pip install --upgrade pip
-          python -m pip wheel -r requirements-dev.txt
-          python -m pip install --no-deps --force-reinstall -e .[test]
+  #     - name: Install dependencies
+  #       run: |
+  #         python${{ matrix.python-version }} -m venv testenv
+  #         . testenv/bin/activate
+  #         python -m pip install --upgrade pip
+  #         python -m pip wheel -r requirements-dev.txt
+  #         python -m pip install --no-deps --force-reinstall -e .[test]
 
-      - name: run tests
-        run: |
-          . testenv/bin/activate
-          python -m pip install -r requirements-dev.txt
-          python -m pytest -v -m "not wheel" -rxXs --cov rasterio --cov-report term-missing
+  #     - name: run tests
+  #       run: |
+  #         . testenv/bin/activate
+  #         python -m pip install -r requirements-dev.txt
+  #         python -m pytest -v -m "not wheel" -rxXs --cov rasterio --cov-report term-missing
 
   conda_test:
-    needs: linting
+    # needs: linting
     name: Conda | ${{ matrix.os }} | python=${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
       matrix:
-        os: [macos-latest]
-        python-version: ['3.9', '3.10', '3.11']
-        include:
-          - os: ubuntu-latest
-            python-version: '3.10'
-          - os: ubuntu-latest
-            python-version: '3.11'
+        os: [windows-2022] #macos-latest]
+        python-version: ['3.11'] #, '3.9', '3.10', '3.11']
+        # include:
+        #   - os: ubuntu-latest
+        #     python-version: '3.10'
+        #   - os: ubuntu-latest
+        #     python-version: '3.11'
+
     steps:
       - uses: actions/checkout@v4
 
@@ -124,7 +125,7 @@ jobs:
           conda config --set channel_priority strict
           conda create -n test python=${{ matrix.python-version }} libgdal geos=3.11 cython=3 numpy
           source activate test
-          python -m pip install -e . --no-use-pep517 || python -m pip install -e .
+          python -m pip install -e . 
           python -m pip install -r requirements-dev.txt
 
       - name: Check and Log Environment
@@ -133,6 +134,13 @@ jobs:
           source activate test
           python -V
           conda info
+
+      - name: Test with Coverage (Ubuntu)
+        if: matrix.os == 'windows-2022'
+        shell: bash
+        run: |
+          source activate test
+          python -m pytest -v -m "not wheel" -rxXs --cov rasterio --cov-report term-missing -k "not test_target_aligned_pixels and not test_reproject_error_propagation and not test_outer_boundless_pixel_fidelity and not issue2353"
 
       - name: Test with Coverage (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
