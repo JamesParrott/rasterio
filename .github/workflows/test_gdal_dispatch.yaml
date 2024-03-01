@@ -3,11 +3,11 @@ name: Test on signal from GDAL
 on:
   repository_dispatch:
     types: [upstream_tag]
-  # pull_request:  # also build on PRs touching this file
-  #   paths:
-  #     - ".github/workflows/test_gdal_dispatch.yaml"
-  #     - ".github/workflows/test_gdal_build.yaml"
-  #     - "ci/gdal-compile.sh"
+  pull_request:  # also build on PRs touching this file
+    paths:
+      - ".github/workflows/test_gdal_dispatch.yaml"
+      - ".github/workflows/test_gdal_build.yaml"
+      - "ci/gdal-compile.sh"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
